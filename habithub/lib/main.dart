@@ -9,13 +9,16 @@ class Habit {
     required this.description,
     required this.time,
     required this.isShared,
+    required this.friends,
   });
 
   final String name;
   final String description;
   final String time;
   final bool isShared;
+  final List<String> friends;
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -93,14 +96,23 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: ListView.builder(
+        itemCount: habits.length,
+        itemBuilder: (context, index) {
+          return Card(
+            child: ListTile(
+              title: Text(habits[index].name),
+              subtitle: Text(habits[index].description),
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           TextEditingController habitNameController = TextEditingController();
           TextEditingController descriptionController = TextEditingController();
           TextEditingController timeController = TextEditingController();
+          TextEditingController friendsController = TextEditingController();
           bool isShared = false;
 
           showDialog(
@@ -132,6 +144,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                       controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
                     ),
+                    TextField(
+                      controller: friendsController,
+                      decoration: InputDecoration(hintText: "Friends"),
+                    ),
                   ],
                 ),
                 actions: <Widget>[
@@ -148,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       String habitName = habitNameController.text;
                       String description = descriptionController.text;
                       String time = timeController.text;
+                      List<String> friends = friendsController.text.split(',');
 
                       // Create a new habit with the provided details
                       Habit newHabit = Habit(
@@ -155,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         description: description,
                         time: time,
                         isShared: isShared,
+                        friends: friends,
                       );
 
                       // Add the new habit to your list of habits
@@ -171,6 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.add),
         backgroundColor: Colors.deepPurple,
       ),
+
 
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
