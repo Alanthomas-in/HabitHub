@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Habit Tracker'),
+        title: const Text('HabitHub'),
       ),
       drawer: Drawer(
         child: ListView(

@@ -15,12 +15,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return _isLoggedIn ? MyHomePage() : Scaffold(
       appBar: AppBar(
         title: Text('Habit Hub'),
         centerTitle: true,
       ),
-      body: _isLoggedIn ? MyHomePage() : Center(
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Form(
