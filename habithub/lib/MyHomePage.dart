@@ -52,16 +52,18 @@ class _MyHomePageState extends State<MyHomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: const <Widget>[
-            DrawerHeader(
+            UserAccountsDrawerHeader(
+              accountName: Text("User Name"), // replace with actual user name
+              accountEmail: Text("user@example.com"), // replace with actual user email
+              currentAccountPicture: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Text(
+                  "U", // replace with the first letter of the user name
+                  style: TextStyle(fontSize: 40.0),
+                ),
+              ),
               decoration: BoxDecoration(
                 color: Colors.deepPurple,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
               ),
             ),
             ListTile(
@@ -78,7 +80,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
-      ),
+      )
+,
       body: ListView.builder(
         itemCount: habits.length,
         itemBuilder: (context, index) {
