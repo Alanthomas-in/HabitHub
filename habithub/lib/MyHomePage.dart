@@ -176,7 +176,6 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.deepPurple,
       ),
 
-
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
