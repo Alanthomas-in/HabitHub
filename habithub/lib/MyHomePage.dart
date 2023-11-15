@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'main.dart';
+import 'AccountPage.dart';
+import 'SharedHabitsPage.dart';
+
 class Habit {
   Habit({
     required this.name,
@@ -27,11 +28,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text('Home Page'),
-    Text('Shared Habits'),
-    Text('Account'),
-  ];
 
   // Define the habits list
   List<Habit> habits = [];
@@ -53,12 +49,12 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: EdgeInsets.zero,
           children: const <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text("User Name"), // replace with actual user name
-              accountEmail: Text("user@example.com"), // replace with actual user email
+              accountName: Text("User Name"),
+              accountEmail: Text("user@example.com"),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Text(
-                  "U", // replace with the first letter of the user name
+                  "U",
                   style: TextStyle(fontSize: 40.0),
                 ),
               ),
@@ -80,102 +76,17 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
-      )
-,
-      body: ListView.builder(
-        itemCount: habits.length,
-        itemBuilder: (context, index) {
-          return Card(
-            child: ListTile(
-              title: Text(habits[index].name),
-              subtitle: Text(habits[index].description),
-            ),
-          );
-        },
       ),
-      floatingActionButton: FloatingActionButton(
+      body: _getSelectedWidget(),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
         onPressed: () {
-          TextEditingController habitNameController = TextEditingController();
-          TextEditingController descriptionController = TextEditingController();
-          TextEditingController timeController = TextEditingController();
-          TextEditingController friendsController = TextEditingController();
-          bool isShared = false;
-
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Add a new habit'),
-                content: Column(
-                  children: <Widget>[
-                    TextField(
-                      controller: habitNameController,
-                      decoration: InputDecoration(hintText: "Habit name"),
-                    ),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(hintText: "Description"),
-                    ),
-                    TextField(
-                      controller: timeController,
-                      decoration: InputDecoration(hintText: "Time for notification"),
-                    ),
-                    CheckboxListTile(
-                      title: Text("Shared"),
-                      value: isShared,
-                      onChanged: (newValue) {
-                        setState(() {
-                          isShared = newValue ?? false;
-                        });
-                      },
-                      controlAffinity: ListTileControlAffinity.leading,  //  <-- leading Checkbox
-                    ),
-                    TextField(
-                      controller: friendsController,
-                      decoration: InputDecoration(hintText: "Friends"),
-                    ),
-                  ],
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text('Cancel'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: Text('Add'),
-                    onPressed: () {
-                      // Add your habit addition code here
-                      String habitName = habitNameController.text;
-                      String description = descriptionController.text;
-                      String time = timeController.text;
-                      List<String> friends = friendsController.text.split(',');
-
-                      // Create a new habit with the provided details
-                      Habit newHabit = Habit(
-                        name: habitName,
-                        description: description,
-                        time: time,
-                        isShared: isShared,
-                        friends: friends,
-                      );
-
-                      // Add the new habit to your list of habits
-                      habits.add(newHabit);
-
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ],
-              );
-            },
-          );
+          _showAddHabitDialog(context);
         },
         child: const Icon(Icons.add),
         backgroundColor: Colors.deepPurple,
-      ),
-
+      )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -195,6 +106,168 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedItemColor: Colors.deepPurple[800],
         onTap: _onItemTapped,
       ),
+    );
+  }
+
+  Widget _getSelectedWidget() {
+    switch (_selectedIndex) {
+      case 0:
+        return HomeWidget(habits: habits);
+      case 1:
+        return SharedHabitsPage();
+      case 2:
+        return AccountPage();
+      default:
+        return Container(); // Handle the case where an invalid index is provided
+    }
+  }
+
+  void _showAddHabitDialog(BuildContext context) {
+    TextEditingController habitNameController = TextEditingController();
+    TextEditingController descriptionController = TextEditingController();
+    TextEditingController timeController = TextEditingController();
+    TextEditingController friendsController = TextEditingController();
+    bool isShared = false;
+    List<String> friendsList = [];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add a new habit'),
+          content: Column(
+            children: <Widget>[
+              TextField(
+                controller: habitNameController,
+                decoration: InputDecoration(hintText: "Habit name"),
+              ),
+              TextField(
+                controller: descriptionController,
+                decoration: InputDecoration(hintText: "Description"),
+              ),
+              TextField(
+                controller: timeController,
+                decoration: InputDecoration(hintText: "Time for notification"),
+              ),
+              CheckboxListTile(
+                title: Text("Shared"),
+                value: isShared,
+                onChanged: (newValue) {
+                  setState(() {
+                    isShared = newValue ?? false;
+                    if (!isShared) {
+                      friendsList.clear();
+                    }
+                  });
+                },
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              if (isShared)
+                _buildFriendsInput(context, friendsController, friendsList),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Add'),
+              onPressed: () {
+                _addHabit(
+                  habitNameController.text,
+                  descriptionController.text,
+                  timeController.text,
+                  isShared,
+                  friendsList,
+                );
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFriendsInput(
+      BuildContext context,
+      TextEditingController friendsController,
+      List<String> friendsList,
+      ) {
+    return Column(
+      children: <Widget>[
+        TextField(
+          onChanged: (value) {
+            setState(() {
+              friendsList.clear();
+              friendsList.addAll(value.split(',').map((e) => e.trim()));
+            });
+          },
+          controller: friendsController,
+          decoration: InputDecoration(hintText: "Friends (comma-separated)"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              friendsList.add(friendsController.text);
+              friendsController.clear();
+            });
+          },
+          child: Text("Add More"),
+        ),
+        if (friendsList.isNotEmpty)
+          Text("Added Friends: ${friendsList.join(', ')}"),
+      ],
+    );
+  }
+
+
+
+  void _addHabit(
+      String habitName,
+      String description,
+      String time,
+      bool isShared,
+      List<String> friends,
+      ) {
+    // Create a new habit with the provided details
+    Habit newHabit = Habit(
+      name: habitName,
+      description: description,
+      time: time,
+      isShared: isShared,
+      friends: friends,
+    );
+
+    // Add the new habit to your list of habits
+    setState(() {
+      habits.add(newHabit);
+    });
+  }
+}
+
+class HomeWidget extends StatelessWidget {
+  final List<Habit> habits;
+
+  HomeWidget({required this.habits});
+
+  @override
+  Widget build(BuildContext context) {
+    // Display the list of habits here
+    return ListView.builder(
+      itemCount: habits.length,
+      itemBuilder: (context, index) {
+        return Card(
+          child: ListTile(
+            title: Text(habits[index].name),
+            subtitle: Text(habits[index].description),
+          ),
+        );
+      },
     );
   }
 }
