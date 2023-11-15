@@ -133,61 +133,65 @@ class _MyHomePageState extends State<MyHomePage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Add a new habit'),
-          content: Column(
-            children: <Widget>[
-              TextField(
-                controller: habitNameController,
-                decoration: InputDecoration(hintText: "Habit name"),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Add a new habit'),
+              content: Column(
+                children: <Widget>[
+                  TextField(
+                    controller: habitNameController,
+                    decoration: InputDecoration(hintText: "Habit name"),
+                  ),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: InputDecoration(hintText: "Description"),
+                  ),
+                  TextField(
+                    controller: timeController,
+                    decoration: InputDecoration(hintText: "Time for notification"),
+                  ),
+                  CheckboxListTile(
+                    title: Text("Shared"),
+                    value: isShared,
+                    onChanged: (newValue) {
+                      setState(() {
+                        isShared = newValue ?? false;
+                        if (!isShared) {
+                          friendsList.clear();
+                        }
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  if (isShared)
+                    _buildFriendsInput(context, friendsController, friendsList),
+                ],
               ),
-              TextField(
-                controller: descriptionController,
-                decoration: InputDecoration(hintText: "Description"),
-              ),
-              TextField(
-                controller: timeController,
-                decoration: InputDecoration(hintText: "Time for notification"),
-              ),
-              CheckboxListTile(
-                title: Text("Shared"),
-                value: isShared,
-                onChanged: (newValue) {
-                  setState(() {
-                    isShared = newValue ?? false;
-                    if (!isShared) {
-                      friendsList.clear();
-                    }
-                  });
-                },
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-              if (isShared)
-                _buildFriendsInput(context, friendsController, friendsList),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Add'),
-              onPressed: () {
-                _addHabit(
-                  habitNameController.text,
-                  descriptionController.text,
-                  timeController.text,
-                  isShared,
-                  friendsList,
-                );
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Add'),
+                  onPressed: () {
+                    _addHabit(
+                      habitNameController.text,
+                      descriptionController.text,
+                      timeController.text,
+                      isShared,
+                      friendsList,
+                    );
 
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -224,8 +228,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
-
-
 
   void _addHabit(
       String habitName,
