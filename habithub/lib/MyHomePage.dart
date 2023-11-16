@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'AccountPage.dart';
+import 'MessagesPage.dart';
+import 'ProfilePage.dart';
+import 'SettingsPage.dart';
 import 'SharedHabitsPage.dart';
 
 class Habit {
@@ -37,6 +40,27 @@ class _MyHomePageState extends State<MyHomePage> {
       _selectedIndex = index;
     });
   }
+  // Inside _MyHomePageState class
+  void _onDrawerItemClicked(int index) {
+    switch (index) {
+      case 0:
+      // Home (do nothing)
+        break;
+      case 1:
+      // Messages
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => MessagesPage()));
+        break;
+      case 2:
+      // Profile
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
+        break;
+      case 3:
+      // Settings
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SettingsPage()));
+        break;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children: const <Widget>[
+          children:  <Widget>[
             UserAccountsDrawerHeader(
               accountName: Text("User Name"),
               accountEmail: Text("user@example.com"),
@@ -65,14 +89,23 @@ class _MyHomePageState extends State<MyHomePage> {
             ListTile(
               leading: Icon(Icons.message),
               title: Text('Messages'),
+              onTap: () {
+                _onDrawerItemClicked(1);
+              },
             ),
             ListTile(
               leading: Icon(Icons.account_circle),
               title: Text('Profile'),
+              onTap: () {
+                _onDrawerItemClicked(2);
+              },
             ),
             ListTile(
               leading: Icon(Icons.settings),
               title: Text('Settings'),
+              onTap: () {
+                _onDrawerItemClicked(3);
+              },
             ),
           ],
         ),
