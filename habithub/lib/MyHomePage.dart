@@ -71,15 +71,23 @@ class _MyHomePageState extends State<MyHomePage> {
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
-          children:  <Widget>[
+          children: <Widget>[
             UserAccountsDrawerHeader(
               accountName: Text("User Name"),
               accountEmail: Text("user@example.com"),
-              currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: Text(
-                  "U",
-                  style: TextStyle(fontSize: 40.0),
+              currentAccountPicture: GestureDetector(
+                onTap: () {
+                  // Navigate to the AccountPage when the user image is tapped
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AccountPage(),
+                  ));
+                },
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    "U",
+                    style: TextStyle(fontSize: 40.0),
+                  ),
                 ),
               ),
               decoration: BoxDecoration(
