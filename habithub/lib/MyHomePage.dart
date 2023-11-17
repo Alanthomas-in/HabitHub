@@ -151,17 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _getSelectedWidget() {
     switch (_selectedIndex) {
       case 0:
-        return ListView.builder(
-          itemCount: habits.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: ListTile(
-                title: Text(habits[index].name),
-                subtitle: Text(habits[index].description),
-              ),
-            );
-          },
-        );
+        return HomeWidget(habits: habits, onHabitClicked: _showHabitDetails);
       case 1:
         return SharedHabitsPage();
       case 2:
@@ -275,8 +265,7 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           child: Text("Add More"),
         ),
-        if (friendsList.isNotEmpty)
-          Text("Added Friends: ${friendsList.join(', ')}"),
+        if (friendsList.isNotEmpty) Text("Added Friends: ${friendsList.join(', ')}"),
       ],
     );
   }
@@ -302,16 +291,45 @@ class _MyHomePageState extends State<MyHomePage> {
       habits.add(newHabit);
     });
   }
+
+  void _showHabitDetails(Habit habit) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Habit Details'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Name: ${habit.name}'),
+              Text('Description: ${habit.description}'),
+              Text('Time: ${habit.time}'),
+              Text('Shared: ${habit.isShared ? "Yes" : "No"}'),
+              if (habit.isShared) Text('Friends: ${habit.friends.join(', ')}'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class HomeWidget extends StatelessWidget {
   final List<Habit> habits;
+  final Function(Habit) onHabitClicked;
 
-  HomeWidget({required this.habits});
+  HomeWidget({required this.habits, required this.onHabitClicked});
 
   @override
   Widget build(BuildContext context) {
-    // Display the list of habits here
     return ListView.builder(
       itemCount: habits.length,
       itemBuilder: (context, index) {
@@ -319,6 +337,15 @@ class HomeWidget extends StatelessWidget {
           child: ListTile(
             title: Text(habits[index].name),
             subtitle: Text(habits[index].description),
+            leading: Checkbox(
+              value: false, // Replace with the actual checked status of the habit
+              onChanged: (bool? value) {
+                // Handle checkbox state change if needed
+              },
+            ),
+            onTap: () {
+              onHabitClicked(habits[index]);
+            },
           ),
         );
       },
