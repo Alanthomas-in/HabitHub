@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _selectedIndex = index;
     });
   }
-  // Inside _MyHomePageState class
+
   void _onDrawerItemClicked(int index) {
     switch (index) {
       case 0:
@@ -61,7 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +76,6 @@ class _MyHomePageState extends State<MyHomePage> {
               accountEmail: Text("user@example.com"),
               currentAccountPicture: GestureDetector(
                 onTap: () {
-                  // Navigate to the AccountPage when the user image is tapped
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => AccountPage(),
                   ));
@@ -153,7 +151,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _getSelectedWidget() {
     switch (_selectedIndex) {
       case 0:
-        return HomeWidget(habits: habits);
+        return ListView.builder(
+          itemCount: habits.length,
+          itemBuilder: (context, index) {
+            return Card(
+              child: ListTile(
+                title: Text(habits[index].name),
+                subtitle: Text(habits[index].description),
+              ),
+            );
+          },
+        );
       case 1:
         return SharedHabitsPage();
       case 2:
@@ -272,7 +280,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
-
 
   void _addHabit(
       String habitName,
