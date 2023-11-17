@@ -178,36 +178,38 @@ class _MyHomePageState extends State<MyHomePage> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('Add a new habit'),
-              content: Column(
-                children: <Widget>[
-                  TextField(
-                    controller: habitNameController,
-                    decoration: InputDecoration(hintText: "Habit name"),
-                  ),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(hintText: "Description"),
-                  ),
-                  TextField(
-                    controller: timeController,
-                    decoration: InputDecoration(hintText: "Time for notification"),
-                  ),
-                  CheckboxListTile(
-                    title: Text("Shared"),
-                    value: isShared,
-                    onChanged: (newValue) {
-                      setState(() {
-                        isShared = newValue ?? false;
-                        if (!isShared) {
-                          friendsList.clear();
-                        }
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
-                  ),
-                  if (isShared)
-                    _buildFriendsInput(context, friendsController, friendsList),
-                ],
+              content: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: habitNameController,
+                      decoration: InputDecoration(hintText: "Habit name"),
+                    ),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(hintText: "Description"),
+                    ),
+                    TextField(
+                      controller: timeController,
+                      decoration: InputDecoration(hintText: "Time for notification"),
+                    ),
+                    CheckboxListTile(
+                      title: Text("Shared"),
+                      value: isShared,
+                      onChanged: (newValue) {
+                        setState(() {
+                          isShared = newValue ?? false;
+                          if (!isShared) {
+                            friendsList.clear();
+                          }
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    if (isShared)
+                      _buildFriendsInput(context, friendsController, friendsList, setState),
+                  ],
+                ),
               ),
               actions: <Widget>[
                 TextButton(
@@ -242,6 +244,7 @@ class _MyHomePageState extends State<MyHomePage> {
       BuildContext context,
       TextEditingController friendsController,
       List<String> friendsList,
+      StateSetter setState,
       ) {
     return Column(
       children: <Widget>[
@@ -269,6 +272,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
+
 
   void _addHabit(
       String habitName,
