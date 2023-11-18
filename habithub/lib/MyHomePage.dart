@@ -17,7 +17,7 @@ class Habit {
 
   final String name;
   final String description;
-  final String time;
+  final TimeOfDay time;
   final bool isShared;
   final List<String> friends;
 }
@@ -164,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _showAddHabitDialog(BuildContext context) {
     TextEditingController habitNameController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
-    TextEditingController timeController = TextEditingController();
+    TimeOfDay selectedTime = TimeOfDay.now();
     TextEditingController friendsController = TextEditingController();
     bool isShared = false;
     List<String> friendsList = [];
@@ -187,9 +187,22 @@ class _MyHomePageState extends State<MyHomePage> {
                       controller: descriptionController,
                       decoration: InputDecoration(hintText: "Description"),
                     ),
-                    TextField(
-                      controller: timeController,
-                      decoration: InputDecoration(hintText: "Time for notification"),
+                    GestureDetector(
+                      onTap: () {
+                        _selectTime(context, selectedTime, (time) {
+                          setState(() {
+                            selectedTime = time;
+                          });
+                        });
+                      },
+                      child: AbsorbPointer(
+                        child: TextFormField(
+                          controller: TextEditingController(
+                            text: selectedTime.format(context),
+                          ),
+                          decoration: InputDecoration(hintText: "Time for notification"),
+                        ),
+                      ),
                     ),
                     CheckboxListTile(
                       title: Text("Shared"),
@@ -222,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     _addHabit(
                       habitNameController.text,
                       descriptionController.text,
-                      timeController.text,
+                      selectedTime,
                       isShared,
                       friendsList,
                     );
@@ -273,7 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addHabit(
       String habitName,
       String description,
-      String time,
+      TimeOfDay time,
       bool isShared,
       List<String> friends,
       ) {
@@ -303,7 +316,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Text('Name: ${habit.name}'),
               Text('Description: ${habit.description}'),
-              Text('Time: ${habit.time}'),
+              Text('Time: ${habit.time.format(context)}'),
               Text('Shared: ${habit.isShared ? "Yes" : "No"}'),
               if (habit.isShared) Text('Friends: ${habit.friends.join(', ')}'),
             ],
@@ -319,6 +332,21 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
+
+  Future<void> _selectTime(
+      BuildContext context,
+      TimeOfDay initialTime,
+      Function(TimeOfDay) onTimeSelected,
+      ) async {
+    TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (selectedTime != null && selectedTime != initialTime) {
+      onTimeSelected(selectedTime);
+    }
   }
 }
 
