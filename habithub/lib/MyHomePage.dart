@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'AccountPage.dart';
+import 'CalendarPage.dart';
 import 'MessagesPage.dart';
 import 'ProfilePage.dart';
 import 'SettingsPage.dart';
@@ -137,14 +138,15 @@ class _MyHomePageState extends State<MyHomePage> {
             label: 'Shared',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Account',
+            icon: Icon(Icons.event), // Changed to Event icon
+            label: 'Calendar', // Changed label to Calendar
           ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.deepPurple[800],
         onTap: _onItemTapped,
       ),
+
     );
   }
 
@@ -155,11 +157,12 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         return SharedHabitsPage();
       case 2:
-        return AccountPage();
+        return CalendarPage(); // Change to your Calendar page widget
       default:
         return Container(); // Handle the case where an invalid index is provided
     }
   }
+
 
   void _showAddHabitDialog(BuildContext context) {
     TextEditingController habitNameController = TextEditingController();
