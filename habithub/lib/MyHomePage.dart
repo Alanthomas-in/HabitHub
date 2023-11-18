@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'AccountPage.dart';
 import 'CalendarPage.dart';
 import 'MessagesPage.dart';
 import 'ProfilePage.dart';
@@ -78,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
               currentAccountPicture: GestureDetector(
                 onTap: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AccountPage(),
+                    builder: (context) => ProfilePage(),
                   ));
                 },
                 child: CircleAvatar(
