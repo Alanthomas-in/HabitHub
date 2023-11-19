@@ -1,14 +1,107 @@
-// New Page for Shared Habits
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+import 'MyHomePage.dart';
 
 class SharedHabitsPage extends StatelessWidget {
+  final List<Habit> sharedHabits;
+
+  SharedHabitsPage({required this.sharedHabits});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        // Display the list of shared habits here
-        Text('Shared Habits Page'),
-      ],
+    return Scaffold(
+      body: ListView.builder(
+        itemCount: sharedHabits.length,
+        itemBuilder: (context, index) {
+          return Card(
+            elevation: 3,
+            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              title: Text(
+                sharedHabits[index].name,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Text(sharedHabits[index].description),
+              onTap: () {
+                _showHabitDetails(context, sharedHabits[index]);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showHabitDetails(BuildContext context, Habit habit) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Habit Details',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 12),
+                _buildDetailRow('Name', habit.name),
+                _buildDetailRow('Description', habit.description),
+                _buildDetailRow('Time', habit.time.format(context)),
+                _buildDetailRow('Shared', habit.isShared ? 'Yes' : 'No'),
+                if (habit.isShared) _buildDetailRow('Friends', habit.friends.join(', ')),
+                SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.center,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -6,6 +6,8 @@ import 'ProfilePage.dart';
 import 'SettingsPage.dart';
 import 'SharedHabitsPage.dart';
 
+List<Habit> sharedHabits = [];
+
 class Habit {
   Habit({
     required this.name,
@@ -156,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         return HomeWidget(habits: habits, onHabitClicked: _showHabitDetails);
       case 1:
-        return SharedHabitsPage();
+        return SharedHabitsPage(sharedHabits: sharedHabits); // Pass sharedHabits to the SharedHabitsPage
       case 2:
         return CalendarPage(); // Change to your Calendar page widget
       default:
@@ -302,11 +304,17 @@ class _MyHomePageState extends State<MyHomePage> {
       isShared: isShared,
       friends: friends,
     );
-
-    // Add the new habit to your list of habits
-    setState(() {
-      habits.add(newHabit);
-    });
+    // Add the new habit to the appropriate list based on isShared
+    if (isShared) {
+      setState(() {
+        habits.add(newHabit);
+        sharedHabits.add(newHabit);
+      });
+    } else {
+      setState(() {
+        habits.add(newHabit);
+      });
+    }
   }
 
   void _showHabitDetails(Habit habit) {
