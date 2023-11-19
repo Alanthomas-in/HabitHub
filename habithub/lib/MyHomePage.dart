@@ -13,6 +13,7 @@ class Habit {
     required this.time,
     required this.isShared,
     required this.friends,
+    this.isChecked = false, // Add this line for checkbox state
   });
 
   final String name;
@@ -20,6 +21,7 @@ class Habit {
   final TimeOfDay time;
   final bool isShared;
   final List<String> friends;
+  bool isChecked; // New property for checkbox state
 }
 
 class MyHomePage extends StatefulWidget {
@@ -393,29 +395,37 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class HomeWidget extends StatelessWidget {
+class HomeWidget extends StatefulWidget {
   final List<Habit> habits;
   final Function(Habit) onHabitClicked;
 
   HomeWidget({required this.habits, required this.onHabitClicked});
 
   @override
+  _HomeWidgetState createState() => _HomeWidgetState();
+}
+
+class _HomeWidgetState extends State<HomeWidget> {
+  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: habits.length,
+      itemCount: widget.habits.length,
       itemBuilder: (context, index) {
         return Card(
           child: ListTile(
-            title: Text(habits[index].name),
-            subtitle: Text(habits[index].description),
+            title: Text(widget.habits[index].name),
+            subtitle: Text(widget.habits[index].description),
             leading: Checkbox(
-              value: false, // Replace with the actual checked status of the habit
+              value: widget.habits[index].isChecked,
               onChanged: (bool? value) {
-                // Handle checkbox state change if needed
+                setState(() {
+                  // Update the checked status of the habit
+                  widget.habits[index].isChecked = value ?? false;
+                });
               },
             ),
             onTap: () {
-              onHabitClicked(habits[index]);
+              widget.onHabitClicked(widget.habits[index]);
             },
           ),
         );
@@ -423,3 +433,4 @@ class HomeWidget extends StatelessWidget {
     );
   }
 }
+
