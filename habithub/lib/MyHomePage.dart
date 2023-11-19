@@ -412,9 +412,31 @@ class _HomeWidgetState extends State<HomeWidget> {
       itemCount: widget.habits.length,
       itemBuilder: (context, index) {
         return Card(
+          elevation: 3, // Add elevation for a card-like appearance
+          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: ListTile(
-            title: Text(widget.habits[index].name),
-            subtitle: Text(widget.habits[index].description),
+            tileColor: widget.habits[index].isChecked
+                ? Colors.green[100] // Change background color for completed habit
+                : null,
+            title: Text(
+              widget.habits[index].name,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: widget.habits[index].isChecked
+                    ? Colors.green[800] // Change text color for completed habit
+                    : null,
+              ),
+            ),
+            subtitle: Text(
+              widget.habits[index].description,
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.grey[600],
+              ),
+            ),
             leading: Checkbox(
               value: widget.habits[index].isChecked,
               onChanged: (bool? value) {
@@ -423,6 +445,7 @@ class _HomeWidgetState extends State<HomeWidget> {
                   widget.habits[index].isChecked = value ?? false;
                 });
               },
+              activeColor: Colors.deepPurple, // Change color of the checkbox
             ),
             onTap: () {
               widget.onHabitClicked(widget.habits[index]);
