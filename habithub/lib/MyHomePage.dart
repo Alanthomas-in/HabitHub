@@ -15,7 +15,9 @@ class Habit {
     required this.time,
     required this.isShared,
     required this.friends,
-    this.isChecked = false, // Add this line for checkbox state
+    this.isChecked = false,
+    required this.totalDays, // Add this line for total days
+    this.progress = 0, // Add this line for progress
   });
 
   final String name;
@@ -23,7 +25,9 @@ class Habit {
   final TimeOfDay time;
   final bool isShared;
   final List<String> friends;
-  bool isChecked; // New property for checkbox state
+  bool isChecked;
+  final int totalDays; // New property for total days
+  int progress; // New property for progress
 }
 
 class MyHomePage extends StatefulWidget {
@@ -149,7 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
         selectedItemColor: Colors.deepPurple[800],
         onTap: _onItemTapped,
       ),
-
     );
   }
 
@@ -166,7 +169,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   void _showAddHabitDialog(BuildContext context) {
     TextEditingController habitNameController = TextEditingController();
     TextEditingController descriptionController = TextEditingController();
@@ -174,6 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
     TextEditingController friendsController = TextEditingController();
     bool isShared = false;
     List<String> friendsList = [];
+    int totalDays = 0;
 
     showDialog(
       context: context,
@@ -210,6 +213,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
+                    TextField(
+                      controller: TextEditingController(
+                        text: totalDays.toString(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          totalDays = int.parse(value);
+                        });
+                      },
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(hintText: "Total Days"),
+                    ),
                     CheckboxListTile(
                       title: Text("Shared"),
                       value: isShared,
@@ -244,6 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       selectedTime,
                       isShared,
                       friendsList,
+                      totalDays,
                     );
 
                     Navigator.of(context).pop();
@@ -295,6 +311,7 @@ class _MyHomePageState extends State<MyHomePage> {
       TimeOfDay time,
       bool isShared,
       List<String> friends,
+      int totalDays,
       ) {
     // Create a new habit with the provided details
     Habit newHabit = Habit(
@@ -303,6 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
       time: time,
       isShared: isShared,
       friends: friends,
+      totalDays: totalDays,
     );
     // Add the new habit to the appropriate list based on isShared
     if (isShared) {
@@ -344,6 +362,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 _buildDetailRow('Time', habit.time.format(context)),
                 _buildDetailRow('Shared', habit.isShared ? 'Yes' : 'No'),
                 if (habit.isShared) _buildDetailRow('Friends', habit.friends.join(', ')),
+                _buildDetailRow('Total Days', habit.totalDays.toString()),
+                _buildDetailRow('Progress', '${habit.progress}/${habit.totalDays} days'),
                 SizedBox(height: 12),
                 Align(
                   alignment: Alignment.center,
@@ -420,22 +440,18 @@ class _HomeWidgetState extends State<HomeWidget> {
       itemCount: widget.habits.length,
       itemBuilder: (context, index) {
         return Card(
-          elevation: 3, // Add elevation for a card-like appearance
+          elevation: 3,
           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            tileColor: widget.habits[index].isChecked
-                ? Colors.green[100] // Change background color for completed habit
-                : null,
+            tileColor: widget.habits[index].isChecked ? Colors.green[100] : null,
             title: Text(
               widget.habits[index].name,
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: widget.habits[index].isChecked
-                    ? Colors.green[800] // Change text color for completed habit
-                    : null,
+                color: widget.habits[index].isChecked ? Colors.green[800] : null,
               ),
             ),
             subtitle: Text(
@@ -448,13 +464,17 @@ class _HomeWidgetState extends State<HomeWidget> {
             leading: Checkbox(
               value: widget.habits[index].isChecked,
               onChanged: (bool? value) {
-                setState(() {
-                  // Update the checked status of the habit
-                  widget.habits[index].isChecked = value ?? false;
-                });
+                _handleCheckboxChange(widget.habits[index]);
               },
-              activeColor: Colors.deepPurple, // Change color of the checkbox
+              activeColor: Colors.deepPurple,
             ),
+            trailing: widget.habits[index].isChecked
+                ? CircularProgressIndicator(
+              value: widget.habits[index].progress / widget.habits[index].totalDays,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+            )
+                : null,
             onTap: () {
               widget.onHabitClicked(widget.habits[index]);
             },
@@ -462,6 +482,53 @@ class _HomeWidgetState extends State<HomeWidget> {
         );
       },
     );
+  }
+
+  void _handleCheckboxChange(Habit habit) {
+    if (habit.isChecked) {
+      _uncheckHabit(habit);
+    } else {
+      _checkHabit(habit);
+    }
+  }
+
+  void _checkHabit(Habit habit) {
+    setState(() {
+      habit.isChecked = true;
+      DateTime now = DateTime.now();
+      DateTime habitTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        habit.time.hour,
+        habit.time.minute,
+      );
+
+      if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
+        habit.progress += 1;
+      }
+    });
+  }
+
+  void _uncheckHabit(Habit habit) {
+    setState(() {
+      habit.isChecked = false;
+      DateTime now = DateTime.now();
+      DateTime habitTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        habit.time.hour,
+        habit.time.minute,
+      );
+
+      if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
+        habit.progress -= 1;
+        if (habit.progress < 0) {
+          habit.progress = 0;
+        }
+      }
+    });
   }
 }
 
