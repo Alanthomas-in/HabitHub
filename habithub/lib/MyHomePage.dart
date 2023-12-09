@@ -20,13 +20,13 @@ class Habit {
     this.progress = 0, // Add this line for progress
   });
 
-  final String name;
-  final String description;
-  final TimeOfDay time;
-  final bool isShared;
-  final List<String> friends;
+  late String name;
+  late String description;
+  late TimeOfDay time;
+  late bool isShared;
+  late List<String> friends;
   bool isChecked;
-  final int totalDays; // New property for total days
+  late int totalDays; // New property for total days
   int progress; // New property for progress
 }
 
@@ -225,6 +225,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(hintText: "Total Days"),
                     ),
+                    if (totalDays == 0)
+                      Text(
+                        'Total days cannot be 0.',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     CheckboxListTile(
                       title: Text("Shared"),
                       value: isShared,
@@ -253,16 +258,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 TextButton(
                   child: Text('Add'),
                   onPressed: () {
-                    _addHabit(
-                      habitNameController.text,
-                      descriptionController.text,
-                      selectedTime,
-                      isShared,
-                      friendsList,
-                      totalDays,
-                    );
-
-                    Navigator.of(context).pop();
+                    if (totalDays == 0) {
+                      _showToast(context, 'Total days cannot be 0.');
+                    } else {
+                      _addHabit(
+                        habitNameController.text,
+                        descriptionController.text,
+                        selectedTime,
+                        isShared,
+                        friendsList,
+                        totalDays,
+                      );
+                      Navigator.of(context).pop();
+                    }
                   },
                 ),
               ],
@@ -272,6 +280,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
+
 
   Widget _buildFriendsInput(
       BuildContext context,
@@ -289,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
             });
           },
           controller: friendsController,
-          decoration: InputDecoration(hintText: "Friends (comma-separated)"),
+          decoration: InputDecoration(labelText: "Friends (comma-separated)"),
         ),
         ElevatedButton(
           onPressed: () {
@@ -300,10 +309,31 @@ class _MyHomePageState extends State<MyHomePage> {
           },
           child: Text("Add More"),
         ),
-        if (friendsList.isNotEmpty) Text("Added Friends: ${friendsList.join(', ')}"),
+        if (friendsList.isNotEmpty)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Added Friends:"),
+              for (String friend in friendsList)
+                Row(
+                  children: [
+                    Text(friend),
+                    IconButton(
+                      icon: Icon(Icons.remove_circle),
+                      onPressed: () {
+                        setState(() {
+                          friendsList.remove(friend);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+            ],
+          ),
       ],
     );
   }
+
 
   void _addHabit(
       String habitName,
@@ -336,49 +366,160 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showHabitDetails(Habit habit) {
+    TextEditingController habitNameController = TextEditingController(text: habit.name);
+    TextEditingController descriptionController = TextEditingController(text: habit.description);
+    TimeOfDay selectedTime = habit.time;
+    TextEditingController friendsController = TextEditingController(text: habit.friends.join(', '));
+    bool isShared = habit.isShared;
+    List<String> friendsList = List.from(habit.friends);
+    int totalDays = habit.totalDays;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Habit Details',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Habit Details'),
+              content: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: habitNameController,
+                      decoration: InputDecoration(labelText: 'Habit name'),
+                    ),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(labelText: 'Description'),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        _selectTime(context, selectedTime, (time) {
+                          setState(() {
+                            selectedTime = time;
+                          });
+                        });
+                      },
+                      child: AbsorbPointer(
+                        child: TextFormField(
+                          controller: TextEditingController(
+                            text: selectedTime.format(context),
+                          ),
+                          decoration: InputDecoration(labelText: 'Time for notification'),
+                        ),
+                      ),
+                    ),
+                    TextField(
+                      controller: TextEditingController(
+                        text: totalDays.toString(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          totalDays = int.parse(value);
+                        });
+                      },
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Total Days'),
+                    ),
+                    if (totalDays == 0)
+                      Text(
+                        'Total days cannot be 0.',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    CheckboxListTile(
+                      title: Text('Shared'),
+                      value: isShared,
+                      onChanged: (newValue) {
+                        setState(() {
+                          isShared = newValue ?? false;
+                          if (!isShared) {
+                            friendsList.clear();
+                          }
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    if (isShared)
+                      _buildFriendsInput(context, friendsController, friendsList, setState),
+                  ],
                 ),
-                SizedBox(height: 12),
-                _buildDetailRow('Name', habit.name),
-                _buildDetailRow('Description', habit.description),
-                _buildDetailRow('Time', habit.time.format(context)),
-                _buildDetailRow('Shared', habit.isShared ? 'Yes' : 'No'),
-                if (habit.isShared) _buildDetailRow('Friends', habit.friends.join(', ')),
-                _buildDetailRow('Total Days', habit.totalDays.toString()),
-                _buildDetailRow('Progress', '${habit.progress}/${habit.totalDays} days'),
-                SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.center,
-                  child: ElevatedButton(
-                    onPressed: () {
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Save'),
+                  onPressed: () {
+                    if (totalDays == 0) {
+                      _showToast(context, 'Total days cannot be 0.');
+                    } else {
+                      _updateHabit(
+                        habit,
+                        habitNameController.text,
+                        descriptionController.text,
+                        selectedTime,
+                        isShared,
+                        friendsList,
+                        totalDays,
+                      );
                       Navigator.of(context).pop();
-                    },
-                    child: Text('Close'),
-                  ),
+                    }
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _deleteHabit(habit);
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(primary: Colors.red),
+                  child: Text('Delete'),
                 ),
               ],
-            ),
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  void _updateHabit(
+      Habit habit,
+      String habitName,
+      String description,
+      TimeOfDay time,
+      bool isShared,
+      List<String> friends,
+      int totalDays,
+      ) {
+    setState(() {
+      habit.name = habitName;
+      habit.description = description;
+      habit.time = time;
+      habit.isShared = isShared;
+      habit.friends = friends;
+      habit.totalDays = totalDays;
+    });
+  }
+
+  void _deleteHabit(Habit habit) {
+    setState(() {
+      habits.remove(habit);
+      if (habit.isShared) {
+        sharedHabits.remove(habit);
+      }
+    });
+  }
+
+  void _showToast(BuildContext context, String message) {
+    final scaffold = ScaffoldMessenger.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
     );
   }
 
