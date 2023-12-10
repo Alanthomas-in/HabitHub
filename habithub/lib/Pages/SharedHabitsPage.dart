@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../Data/habit.dart';
 import 'MyHomePage.dart';
 
 class SharedHabitsPage extends StatelessWidget {

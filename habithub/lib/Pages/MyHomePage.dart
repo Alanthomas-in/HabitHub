@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
+import '../Data/habit.dart';
 import 'CalendarPage.dart';
 import 'MessagesPage.dart';
 import 'ProfilePage.dart';
@@ -7,28 +9,6 @@ import 'SettingsPage.dart';
 import 'SharedHabitsPage.dart';
 
 List<Habit> sharedHabits = [];
-
-class Habit {
-  Habit({
-    required this.name,
-    required this.description,
-    required this.time,
-    required this.isShared,
-    required this.friends,
-    this.isChecked = false,
-    required this.totalDays, // Add this line for total days
-    this.progress = 0, // Add this line for progress
-  });
-
-  late String name;
-  late String description;
-  late TimeOfDay time;
-  late bool isShared;
-  late List<String> friends;
-  bool isChecked;
-  late int totalDays; // New property for total days
-  int progress; // New property for progress
-}
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -42,6 +22,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Define the habits list
   List<Habit> habits = [];
+
+  late Box<Habit> habitsBox;
+  late Box<Habit> sharedHabitsBox;
+
+  void initState() {
+    super.initState();
+    // habitsBox = Hive.box<Habit>('habits');
+    List<Habit> habits = Hive.box<Habit>('habits').values.toList();
+    // sharedHabitsBox = Hive.box<Habit>('sharedHabits');
+    List<Habit> sharedHabits = Hive.box<Habit>('sharedHabits').values.toList();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -157,6 +148,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _getSelectedWidget() {
+    habits = Hive.box<Habit>('habits').values.toList();
+    sharedHabits = Hive.box<Habit>('sharedHabits').values.toList();
     switch (_selectedIndex) {
       case 0:
         return HomeWidget(habits: habits, onHabitClicked: _showHabitDetails);
@@ -342,8 +335,9 @@ class _MyHomePageState extends State<MyHomePage> {
       bool isShared,
       List<String> friends,
       int totalDays,
-      ) {
-    // Create a new habit with the provided details
+      ) async {
+    final habitBox = isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+
     Habit newHabit = Habit(
       name: habitName,
       description: description,
@@ -352,17 +346,17 @@ class _MyHomePageState extends State<MyHomePage> {
       friends: friends,
       totalDays: totalDays,
     );
-    // Add the new habit to the appropriate list based on isShared
-    if (isShared) {
-      setState(() {
-        habits.add(newHabit);
+
+    await habitBox.add(newHabit);
+
+    setState(() {
+      habits.add(newHabit);
+      if (isShared) {
         sharedHabits.add(newHabit);
-      });
-    } else {
-      setState(() {
-        habits.add(newHabit);
-      });
-    }
+      }
+    });
+    print(habitsBox.values); // Print habits data
+    print(sharedHabitsBox.values); // Print sharedHabits data
   }
 
   void _showHabitDetails(Habit habit) {
@@ -494,24 +488,29 @@ class _MyHomePageState extends State<MyHomePage> {
       bool isShared,
       List<String> friends,
       int totalDays,
-      ) {
-    setState(() {
-      habit.name = habitName;
-      habit.description = description;
-      habit.time = time;
-      habit.isShared = isShared;
-      habit.friends = friends;
-      habit.totalDays = totalDays;
-    });
+      ) async {
+    final habitBox = isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+
+    habit.name = habitName;
+    habit.description = description;
+    habit.time = time;
+    habit.isShared = isShared;
+    habit.friends = friends;
+    habit.totalDays = totalDays;
+
+    await habitBox.put(habit.key, habit);
   }
 
-  void _deleteHabit(Habit habit) {
+  void _deleteHabit(Habit habit) async {
     setState(() {
       habits.remove(habit);
       if (habit.isShared) {
         sharedHabits.remove(habit);
       }
     });
+
+    final habitBox = habit.isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+    await habitBox.delete(habit.key);
   }
 
   void _showToast(BuildContext context, String message) {
@@ -523,30 +522,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _selectTime(
       BuildContext context,
@@ -647,6 +622,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
         habit.progress += 1;
+        Hive.box<Habit>('habits').put(habit.key, habit);
       }
     });
   }
@@ -668,8 +644,8 @@ class _HomeWidgetState extends State<HomeWidget> {
         if (habit.progress < 0) {
           habit.progress = 0;
         }
+        Hive.box<Habit>('habits').put(habit.key, habit);
       }
     });
   }
 }
-
