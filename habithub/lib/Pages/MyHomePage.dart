@@ -639,13 +639,20 @@ class _HomeWidgetState extends State<HomeWidget> {
         habit.time.minute,
       );
 
-      if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
+      // Check if it's after midnight
+      if (now.isAfter(habitTime.add(Duration(hours: 23)))) {
+        // If it's after midnight, update the progress for the new day
+        habit.progress = 0;
+      } else {
+        // If it's still the same day, decrement the progress
         habit.progress -= 1;
         if (habit.progress < 0) {
           habit.progress = 0;
         }
-        Hive.box<Habit>('habits').put(habit.key, habit);
       }
+
+      Hive.box<Habit>('habits').put(habit.key, habit);
     });
   }
+
 }
