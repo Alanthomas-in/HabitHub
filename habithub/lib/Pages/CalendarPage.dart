@@ -25,16 +25,19 @@ class _CalendarPageState extends State<CalendarPage> {
     _updateCompletedHabitsList(); // Add this line to update the list initially
   }
 
-  CompletedHabits? _getCompletedHabits(DateTime date) {
+  List<CompletedHabits> _getCompletedHabits(DateTime date) {
     final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
-    try {
-      return completedHabitsBox.values.firstWhere(
-            (completedHabit) => isSameDay(completedHabit.date, date),
-        orElse: () => throw StateError('Not found'),
-      );
-    } catch (e) {
-      return null;
-    }
+    return completedHabitsBox.values.where(
+      (element) => isSameDay(element.date, date)
+    ).toList();
+    // try {
+    //   return completedHabitsBox.values.firstWhere(
+    //         (completedHabit) => isSameDay(completedHabit.date, date),
+    //     orElse: () => throw StateError('Not found'),
+    //   );
+    // } catch (e) {
+    //   return null;
+    // }
   }
 
   void _updateCompletedHabitsList() {
@@ -48,8 +51,14 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<Habit> _getCompletedHabitsList(DateTime date) {
-    CompletedHabits? completedHabitsData = _getCompletedHabits(date);
-    return completedHabitsData?.completedHabits.toList() ?? [];
+    List<CompletedHabits> completedHabitsData = _getCompletedHabits(date);
+    List<Habit> completedHabitsList = [];
+
+    for (int i = 0; i < completedHabitsData.length; i++) {
+      completedHabitsList = completedHabitsList + completedHabitsData[i].completedHabits.toList();
+    }
+
+    return completedHabitsList;
   }
 
   @override

@@ -357,8 +357,8 @@ class _MyHomePageState extends State<MyHomePage> {
         sharedHabits.add(newHabit);
       }
     });
-    print(habitsBox.values); // Print habits data
-    print(sharedHabitsBox.values); // Print sharedHabits data
+    print(habitBox.values); // Print habits data
+    print(sharedHabits); // Print sharedHabits data
   }
 
   void _showHabitDetails(Habit habit) {
@@ -501,7 +501,7 @@ class _MyHomePageState extends State<MyHomePage> {
     habit.friends = friends;
     habit.totalDays = totalDays;
 
-    await habitBox.put(habit.key, habit);
+    await habitBox.putAt(habit.key, habit);
     print('Habit updated successfully');
   }
 
@@ -626,6 +626,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
 
   void _handleCheckboxChange(Habit habit) {
+    print("Printing funky habit: $habit, ${habit.isChecked}, ${habit.key}");
     if (habit.isChecked) {
       _uncheckHabit(habit);
     } else {
@@ -647,7 +648,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
         habit.progress += 1;
-        Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
+        Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').putAt(habit.key, habit);
         // Pass a list containing the Habit object itself
         _addCompletedHabits(now, [habit]);
       }
@@ -671,16 +672,16 @@ class _HomeWidgetState extends State<HomeWidget> {
       if (now.isAfter(habitTime.add(Duration(hours: 23)))) {
         habit.progress = 0;
 
-        // Remove the habit from completed habits box
-        _removeCompletedHabit(now, habit);
       } else {
         habit.progress -= 1;
         if (habit.progress < 0) {
           habit.progress = 0;
         }
       }
+      // Remove the habit from completed habits box
+      _removeCompletedHabit(now, habit);
 
-      Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
+      Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').putAt(habit.key, habit);
     });
     _updateCompletedHabits();
   }
@@ -693,7 +694,7 @@ class _HomeWidgetState extends State<HomeWidget> {
   void _removeCompletedHabit(DateTime date, Habit habit) async {
     final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
     CompletedHabits? completedHabitsData = completedHabitsBox.values.firstWhere(
-          (completedHabits) => completedHabits.date == date,
+          (completedHabits) => completedHabits.date.day == date.day,
       orElse: () => CompletedHabits(date: date, completedHabits: []),
     );
 
@@ -704,7 +705,7 @@ class _HomeWidgetState extends State<HomeWidget> {
       await completedHabitsBox.delete(completedHabitsData.key);
     } else {
       // Update the entry in completed habits box
-      await completedHabitsBox.put(completedHabitsData.key, completedHabitsData);
+      await completedHabitsBox.putAt(completedHabitsData.key, completedHabitsData);
     }
   }
 
