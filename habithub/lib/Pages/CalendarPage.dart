@@ -27,26 +27,12 @@ class _CalendarPageState extends State<CalendarPage> {
 
   List<CompletedHabits> _getCompletedHabits(DateTime date) {
     final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
-    return completedHabitsBox.values.where(
-      (element) => isSameDay(element.date, date)
-    ).toList();
-    // try {
-    //   return completedHabitsBox.values.firstWhere(
-    //         (completedHabit) => isSameDay(completedHabit.date, date),
-    //     orElse: () => throw StateError('Not found'),
-    //   );
-    // } catch (e) {
-    //   return null;
-    // }
+    return completedHabitsBox.values.where((element) => isSameDay(element.date, date)).toList();
   }
 
   void _updateCompletedHabitsList() {
     setState(() {
       completedHabits = _getCompletedHabitsList(_selectedDay);
-      // print("Completed Habits List:");
-      // for (Habit habit in completedHabits) {
-      //   print(habit.name);
-      // }
     });
   }
 
@@ -61,6 +47,63 @@ class _CalendarPageState extends State<CalendarPage> {
     return completedHabitsList;
   }
 
+  void _showCompletedHabitsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Completed Habits',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+                  ),
+                  SizedBox(height: 12),
+                  Divider(
+                    color: Colors.blue,
+                  ),
+                  SizedBox(height: 12),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: completedHabits.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(
+                          completedHabits[index].name,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'Close',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +112,7 @@ class _CalendarPageState extends State<CalendarPage> {
           calendarFormat: _calendarFormat,
           focusedDay: _focusedDay,
           firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2023, 12, 31),
+          lastDay: DateTime.utc(2024, 12, 31),
           selectedDayPredicate: (day) {
             return isSameDay(_selectedDay, day);
           },
@@ -87,27 +130,12 @@ class _CalendarPageState extends State<CalendarPage> {
           },
         ),
       ),
-      bottomSheet: completedHabits.isNotEmpty
-          ? Container(
-        padding: EdgeInsets.all(16),
-        color: Colors.grey[200],
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Completed Habits',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            for (Habit habit in completedHabits)
-              Text(
-                habit.name,
-                style: TextStyle(fontSize: 14),
-              ),
-          ],
-        ),
-      )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showCompletedHabitsDialog();
+        },
+        child: Icon(Icons.list),
+      ),
     );
   }
 }
