@@ -150,10 +150,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _getSelectedWidget() {
     habits = Hive.box<Habit>('habits').values.toList();
     sharedHabits = Hive.box<Habit>('sharedHabits').values.toList();
+    // Combine personal and shared habits
+    List<Habit> allHabits = [...habits, ...sharedHabits];
     switch (_selectedIndex) {
       case 0:
-        return HomeWidget(habits: habits, onHabitClicked: _showHabitDetails);
-      case 1:
+        return HomeWidget(habits: allHabits, onHabitClicked: _showHabitDetails);      case 1:
         return SharedHabitsPage(sharedHabits: sharedHabits); // Pass sharedHabits to the SharedHabitsPage
       case 2:
         return CalendarPage(); // Change to your Calendar page widget
@@ -622,7 +623,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
         habit.progress += 1;
-        Hive.box<Habit>('habits').put(habit.key, habit);
+        Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
       }
     });
   }
@@ -639,20 +640,16 @@ class _HomeWidgetState extends State<HomeWidget> {
         habit.time.minute,
       );
 
-      // Check if it's after midnight
       if (now.isAfter(habitTime.add(Duration(hours: 23)))) {
-        // If it's after midnight, update the progress for the new day
         habit.progress = 0;
       } else {
-        // If it's still the same day, decrement the progress
         habit.progress -= 1;
         if (habit.progress < 0) {
           habit.progress = 0;
         }
       }
 
-      Hive.box<Habit>('habits').put(habit.key, habit);
+      Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
     });
   }
-
 }
