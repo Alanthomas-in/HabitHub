@@ -553,6 +553,17 @@ class HomeWidget extends StatefulWidget {
 class _HomeWidgetState extends State<HomeWidget> {
   @override
   Widget build(BuildContext context) {
+    // Sort habits: unchecked habits first, then checked habits
+    widget.habits.sort((a, b) {
+      if (a.isChecked && !b.isChecked) {
+        return 1;
+      } else if (!a.isChecked && b.isChecked) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+
     return ListView.builder(
       itemCount: widget.habits.length,
       itemBuilder: (context, index) {
