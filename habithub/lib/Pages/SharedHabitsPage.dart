@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-
 import '../Data/habit.dart';
-import 'MyHomePage.dart';
 
-class SharedHabitsPage extends StatelessWidget {
+class SharedHabitsPage extends StatefulWidget {
   final List<Habit> sharedHabits;
 
   SharedHabitsPage({required this.sharedHabits});
 
   @override
+  _SharedHabitsPageState createState() => _SharedHabitsPageState();
+}
+
+class _SharedHabitsPageState extends State<SharedHabitsPage> {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView.builder(
-        itemCount: sharedHabits.length,
+        itemCount: widget.sharedHabits.length,
         itemBuilder: (context, index) {
           return Card(
             elevation: 3,
@@ -22,12 +25,12 @@ class SharedHabitsPage extends StatelessWidget {
             ),
             child: ListTile(
               title: Text(
-                sharedHabits[index].name,
+                widget.sharedHabits[index].name,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text(sharedHabits[index].description),
+              subtitle: Text(widget.sharedHabits[index].description),
               onTap: () {
-                _showHabitDetails(context, sharedHabits[index]);
+                _showHabitDetails(context, widget.sharedHabits[index]);
               },
             ),
           );

@@ -29,9 +29,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     // habitsBox = Hive.box<Habit>('habits');
-    List<Habit> habits = Hive.box<Habit>('habits').values.toList();
     // sharedHabitsBox = Hive.box<Habit>('sharedHabits');
-    List<Habit> sharedHabits = Hive.box<Habit>('sharedHabits').values.toList();
+    habits = Hive.box<Habit>('habits').values.toList();
+    sharedHabits = Hive.box<Habit>('sharedHabits').values.toList();
   }
 
   void _onItemTapped(int index) {
@@ -336,7 +336,7 @@ class _MyHomePageState extends State<MyHomePage> {
       List<String> friends,
       int totalDays,
       ) async {
-    final habitBox = isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+    final habitBox = Hive.box<Habit>(isShared ? 'sharedHabits' : 'habits');
 
     Habit newHabit = Habit(
       name: habitName,
@@ -489,7 +489,7 @@ class _MyHomePageState extends State<MyHomePage> {
       List<String> friends,
       int totalDays,
       ) async {
-    final habitBox = isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+    final habitBox = Hive.box<Habit>(isShared ? 'sharedHabits' : 'habits');
 
     habit.name = habitName;
     habit.description = description;
@@ -509,7 +509,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     });
 
-    final habitBox = habit.isShared ? Hive.box<Habit>('sharedHabits') : Hive.box<Habit>('habits');
+    final habitBox = Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits');
     await habitBox.delete(habit.key);
   }
 
