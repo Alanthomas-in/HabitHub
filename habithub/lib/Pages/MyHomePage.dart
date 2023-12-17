@@ -619,8 +619,26 @@ class _HomeWidgetState extends State<HomeWidget> {
 
   void _addCompletedHabits(DateTime date, List<Habit> completedHabits) async {
     final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
-    CompletedHabits completedHabitsData = CompletedHabits(date: date, completedHabits: completedHabits);
-    await completedHabitsBox.add(completedHabitsData);
+
+    List<CompletedHabits?> completedHabitsDataList = completedHabitsBox.values.where((x) => x.date.day == DateTime.now().day).toList();
+    bool newCompletedHabit = completedHabitsDataList.isEmpty;
+
+    if (newCompletedHabit) {
+      completedHabitsBox.add(CompletedHabits(date: date, completedHabits: completedHabits));
+    } else {
+      CompletedHabits completedHabitsData = completedHabitsDataList[0]!;
+      completedHabitsData.completedHabits.addAll(completedHabits);
+      completedHabitsBox.putAt(completedHabitsData.key, completedHabitsData);
+    }
+
+    // List<CompletedHabits> completedHabitsDataList = completedHabitsBox.values.where((x) => x.date.day == DateTime.now().day).toList();
+    // if (completedHabitsDataList.isEmpty) {
+    //   CompletedHabits completedHabitsData = CompletedHabits(date: date, completedHabits: completedHabits);
+    //   await completedHabitsBox.add(completedHabitsData);
+    // } else {
+    //   CompletedHabits? completedHabitsData = completedHabitsDataList[0];
+    //   completedHabitsBox
+    // }
     print('Completed Habits added for ${date.toString()}: ${completedHabits.map((habit) => habit.name).toList()}');
   }
 
@@ -683,6 +701,7 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').putAt(habit.key, habit);
     });
+    Future.delayed(Duration.zero);
     _updateCompletedHabits();
   }
 
@@ -699,14 +718,15 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
 
     completedHabitsData.completedHabits.remove(habit);
+    await completedHabitsBox.putAt(completedHabitsData.key, completedHabitsData);
 
-    if (completedHabitsData.completedHabits.isEmpty) {
-      // Remove the entry from completed habits box if there are no more habits for that date
-      await completedHabitsBox.delete(completedHabitsData.key);
-    } else {
-      // Update the entry in completed habits box
-      await completedHabitsBox.putAt(completedHabitsData.key, completedHabitsData);
-    }
+    // if (completedHabitsData.completedHabits.isEmpty) {
+    //   // Remove the entry from completed habits box if there are no more habits for that date
+    //   await completedHabitsBox.delete(completedHabitsData.key);
+    // } else {
+    //   // Update the entry in completed habits box
+    //   await completedHabitsBox.putAt(completedHabitsData.key, completedHabitsData);
+    // }
   }
 
 }
