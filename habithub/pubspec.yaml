@@ -38,7 +38,7 @@ dependencies:
   firebase_core: ^2.24.0
   hive:
   hive_flutter:
-
+  uuid: ^3.0.4
 
 dev_dependencies:
   flutter_test:

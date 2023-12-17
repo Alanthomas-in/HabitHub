@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:habithub/firebase_options.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'Data/CompletedHabits.dart';
 import 'Pages/LoginPage.dart';
 import 'Data/habit.dart';
 
@@ -14,9 +15,10 @@ Future<void> main() async {
 
   Hive.registerAdapter(TimeOfDayAdapter()); // Register the TimeOfDayAdapter
   Hive.registerAdapter(HabitAdapter()); // Register the Hive adapter for Habit
-
+  Hive.registerAdapter(CompletedHabitsAdapter());
   await Hive.openBox<Habit>('habits'); // Open a box for normal habits
   await Hive.openBox<Habit>('sharedHabits'); // Open a box for shared habits
+  await Hive.openBox<CompletedHabits>('completedHabits');
   runApp(const MyApp());
 }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../Data/CompletedHabits.dart';
 import '../Data/habit.dart';
 import 'CalendarPage.dart';
 import 'MessagesPage.dart';
@@ -155,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
     switch (_selectedIndex) {
       case 0:
         return HomeWidget(habits: allHabits, onHabitClicked: _showHabitDetails);      case 1:
-        return SharedHabitsPage(sharedHabits: sharedHabits); // Pass sharedHabits to the SharedHabitsPage
+      return SharedHabitsPage(sharedHabits: sharedHabits); // Pass sharedHabits to the SharedHabitsPage
       case 2:
         return CalendarPage(); // Change to your Calendar page widget
       default:
@@ -490,6 +491,7 @@ class _MyHomePageState extends State<MyHomePage> {
       List<String> friends,
       int totalDays,
       ) async {
+    print('Updating habit: ${habit.name}');
     final habitBox = Hive.box<Habit>(isShared ? 'sharedHabits' : 'habits');
 
     habit.name = habitName;
@@ -500,9 +502,11 @@ class _MyHomePageState extends State<MyHomePage> {
     habit.totalDays = totalDays;
 
     await habitBox.put(habit.key, habit);
+    print('Habit updated successfully');
   }
 
   void _deleteHabit(Habit habit) async {
+    print('Deleting habit: ${habit.name}');
     setState(() {
       habits.remove(habit);
       if (habit.isShared) {
@@ -512,6 +516,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final habitBox = Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits');
     await habitBox.delete(habit.key);
+    print('Habit deleted successfully');
   }
 
   void _showToast(BuildContext context, String message) {
@@ -612,6 +617,14 @@ class _HomeWidgetState extends State<HomeWidget> {
     );
   }
 
+  void _addCompletedHabits(DateTime date, List<Habit> completedHabits) async {
+    final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
+    CompletedHabits completedHabitsData = CompletedHabits(date: date, completedHabits: completedHabits);
+    await completedHabitsBox.add(completedHabitsData);
+    print('Completed Habits added for ${date.toString()}: ${completedHabits.map((habit) => habit.name).toList()}');
+  }
+
+
   void _handleCheckboxChange(Habit habit) {
     if (habit.isChecked) {
       _uncheckHabit(habit);
@@ -635,9 +648,13 @@ class _HomeWidgetState extends State<HomeWidget> {
       if (now.isBefore(habitTime.add(Duration(hours: 23)))) {
         habit.progress += 1;
         Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
+        // Pass a list containing the Habit object itself
+        _addCompletedHabits(now, [habit]);
       }
     });
+    _updateCompletedHabits();
   }
+
 
   void _uncheckHabit(Habit habit) {
     setState(() {
@@ -653,6 +670,9 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       if (now.isAfter(habitTime.add(Duration(hours: 23)))) {
         habit.progress = 0;
+
+        // Remove the habit from completed habits box
+        _removeCompletedHabit(now, habit);
       } else {
         habit.progress -= 1;
         if (habit.progress < 0) {
@@ -662,5 +682,30 @@ class _HomeWidgetState extends State<HomeWidget> {
 
       Hive.box<Habit>(habit.isShared ? 'sharedHabits' : 'habits').put(habit.key, habit);
     });
+    _updateCompletedHabits();
   }
+
+  void _updateCompletedHabits() {
+    // Notify the CalendarPage to rebuild by calling setState
+    setState(() {});
+  }
+
+  void _removeCompletedHabit(DateTime date, Habit habit) async {
+    final completedHabitsBox = Hive.box<CompletedHabits>('completedHabits');
+    CompletedHabits? completedHabitsData = completedHabitsBox.values.firstWhere(
+          (completedHabits) => completedHabits.date == date,
+      orElse: () => CompletedHabits(date: date, completedHabits: []),
+    );
+
+    completedHabitsData.completedHabits.remove(habit);
+
+    if (completedHabitsData.completedHabits.isEmpty) {
+      // Remove the entry from completed habits box if there are no more habits for that date
+      await completedHabitsBox.delete(completedHabitsData.key);
+    } else {
+      // Update the entry in completed habits box
+      await completedHabitsBox.put(completedHabitsData.key, completedHabitsData);
+    }
+  }
+
 }
