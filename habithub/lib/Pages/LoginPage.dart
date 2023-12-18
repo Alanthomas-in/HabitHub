@@ -49,9 +49,26 @@ class _LoginPageState extends State<LoginPage> {
         _isLoggedIn = true;
       });
     } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
+      String errorMessage = 'Failed to sign in: ';
+
+      if (e.code == 'user-not-found') {
+        errorMessage += 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage += 'Wrong password provided for that user.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage += 'The email address is not valid.';
+      }
+
+      // You can display the error message to the user using a Snackbar or Dialog
+      // Example using a Snackbar:
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      print(errorMessage);
     }
   }
 

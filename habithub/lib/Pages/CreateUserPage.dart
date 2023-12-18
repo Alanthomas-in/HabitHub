@@ -21,10 +21,29 @@ class CreateUserPage extends StatelessWidget {
       Navigator.pop(context); // Navigate back to the login page
     } on FirebaseAuthException catch (e) {
       // Handle user creation errors
+      String errorMessage = 'Failed to create user: ';
+
+      if (e.code == 'weak-password') {
+        errorMessage += 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage += 'The account already exists for that email.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage += 'The email address is not valid.';
+      }
+
+      // You can display the error message to the user using a Snackbar or Dialog
+      // Example using a Snackbar:
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          duration: Duration(seconds: 3),
+        ),
+      );
+
       print('Failed to create user: ${e.message}');
-      // You can also display an error message to the user if needed
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
