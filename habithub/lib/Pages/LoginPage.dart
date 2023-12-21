@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:quickalert/quickalert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../Auth.dart';
 
 import 'CreateUserPage.dart';
@@ -16,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   String? errorMessage = '';
   late bool _isLoggedIn = false; // Declare _isLoggedIn as late
+  bool _loading = false; // Add a variable to track loading state
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
@@ -40,6 +42,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signInWithEmailAndPassword() async {
     try {
+      setState(() {
+        _loading = true; // Show loading animation
+      });
+
       await Auth().signInWithEmailAndPassword(
         email: _controllerEmail.text,
         password: _controllerPassword.text,
@@ -59,95 +65,113 @@ class _LoginPageState extends State<LoginPage> {
         errorMessage += 'The email address is not valid.';
       }
 
-      // You can display the error message to the user using a Snackbar or Dialog
-      // Example using a Snackbar:
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          duration: Duration(seconds: 3),
-        ),
+      // Display the error message in a pop-up dialog
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        text: errorMessage,
       );
 
       print(errorMessage);
+    } finally {
+      setState(() {
+        _loading = false; // Hide loading animation
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _isLoggedIn ? MyHomePage() : Scaffold(
-      appBar: AppBar(
-        title: Text('Habit Hub'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextFormField(
-                  controller: _controllerEmail,
-                  decoration: InputDecoration(
-                    labelText: 'Enter your Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please enter your Email';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _controllerPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Enter your password',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value?.isEmpty ?? true) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16.0),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.deepPurple,
-                    onPrimary: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(32.0),
+    return Stack(
+      children: [
+        _isLoggedIn ? MyHomePage() : Scaffold(
+          appBar: AppBar(
+            title: Text('Habit Hub'),
+            centerTitle: true,
+          ),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    TextFormField(
+                      controller: _controllerEmail,
+                      decoration: InputDecoration(
+                        labelText: 'Enter your Email',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter your Email';
+                        }
+                        return null;
+                      },
                     ),
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      signInWithEmailAndPassword();
-                    }
-                  },
-                  child: Text('Login'),
+                    SizedBox(height: 16.0),
+                    TextFormField(
+                      controller: _controllerPassword,
+                      decoration: InputDecoration(
+                        labelText: 'Enter your password',
+                        border: OutlineInputBorder(),
+                      ),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16.0),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.deepPurple,
+                        onPrimary: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(32.0),
+                        ),
+                      ),
+                      onPressed: () {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          signInWithEmailAndPassword();
+                        }
+                      },
+                      child: Text('Login'),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        primary: Colors.deepPurple,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CreateUserPage(context)),
+                        );
+                      },
+                      child: Text('Create New User'),
+                    ),
+                  ],
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    primary: Colors.deepPurple,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CreateUserPage(context)),
-                    );
-                  },
-                  child: Text('Create New User'),
-                ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        // Loading animation overlay
+        if (_loading)
+          Container(
+            color: Colors.black.withOpacity(0.5),
+            child: Center(
+              child: LoadingAnimationWidget.twistingDots(
+                leftDotColor: const Color(0xFF0000FF),
+                rightDotColor: const Color(0xFFFFFFFF),
+                size: 50,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
